@@ -20,22 +20,28 @@ func NewBaseHandler(db *gorm.DB) *BaseHandler {
 	}
 }
 
-type Catalog struct {
-  Notes []models.NoteInformation `json:"notes"`
-  Categories []models.Category `json:"categories"`
-}
-
 type UpdateNoteInput struct {
   // Filename   string  `json:"filename" binding:"required"` // this is the param?
   Content  string  `json:"content" binding:"required"`
 }
 
+type NoteInformationAPI struct {
+  // ID        uint    `json:"id"`
+  Filename  string  `json:"filename"`
+  Title     string  `json:"tile"`
+  Favorite  bool    `json:"favorite"`
+}
+
+type Catalog struct {
+  Notes []NoteInformationAPI `json:"notes"`
+  Categories []models.Category `json:"categories"`
+}
 
 // GET /catalog
 // Get notes and categories catalog
 func (h *BaseHandler) GetNotes(c *gin.Context) {
   var catalog Catalog
-  h.db.Find(&catalog.Notes)
+  h.db.Model(&models.NoteInformation{}).Scan(&catalog.Notes)
   h.db.Find(&catalog.Categories)
 
 
@@ -68,22 +74,50 @@ func (h *BaseHandler) UpdateBook(c *gin.Context) {
   }
 
   // Find filename on local machine
-  // filename := c.Param("filename")
+  filename := c.Param("filename")
   
-  // if filemane exists on storage -> update content -> update note information title
+  var editingNote models.NoteInformation
+  isNewNote := false
+  if err := h.db.Where("filename = ?", filename).First(&editingNote).Error; err != nil {
+    isNewNote = true
+  }
 
-  // if filename does not exist on storage -> create it -> append to note information
+  if isNewNote {
+    // Let's add it
+    // TODO - Add note file
+    editingNote.Filename = filename
+    // TODO - Extract Title from content
+    editingNote.Title = "Test"
+    editingNote.Favorite = false
+    editingNote.UserID = 1
+    h.db.Create(&editingNote)
+    c.JSON(http.StatusOK, gin.H{"data": editingNote})
+  } else {
+    // This is an update
+    // TODO - Update content in the note File 
+    // TODO - Extract Title from content
+    editingNote.Title = "Updated Test"
+    h.db.Model(&editingNote).Updates(editingNote)
+    c.JSON(http.StatusOK, gin.H{"data": "note exists!"})
+  }
 
-  c.JSON(http.StatusOK, gin.H{"data": "dummy"})
 }
 
 // DELETE /note/:filename
 // Delete a note
 func (h * BaseHandler) DeleteBook(c *gin.Context) {
   // Find filename on local machine
-  // filename := c.Param("filename")
+  filename := c.Param("filename")
 
   // if filename exists on storage -> delete it -> remove from note information
+  var deletingNote models.NoteInformation
+  if err := h.db.Where("filename = ?", filename).First(&deletingNote).Error; err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+    return
+  }
+
+  h.db.Delete(&deletingNote)
+  // TODO - Delete note from filesystem
 
   c.JSON(http.StatusOK, gin.H{"data": true})
 }

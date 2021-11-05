@@ -17,6 +17,7 @@ func main() {
   apiGroup := r.Group("/api")
   {
     apiGroup.GET("/catalog", controllers.GetNotes)
+    apiGroup.PATCH("/note/:filename", controllers.UpdateBook)
     // r.GET("/books/:id", controllers.FindBook)
     // r.POST("/books", controllers.CreateBook)
     // r.PATCH("/books/:id", controllers.UpdateBook)
