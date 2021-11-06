@@ -10,6 +10,7 @@ import (
 
 func main() {
   r := gin.Default()
+  r.Use(CORSMiddleware())
 
   db := database.ConnectDatabase()
   controllers := c.NewBaseHandler(db)
@@ -17,13 +18,29 @@ func main() {
   apiGroup := r.Group("/api")
   {
     apiGroup.GET("/catalog", controllers.GetNotes)
-    apiGroup.PATCH("/note/:filename", controllers.UpdateBook)
-    // r.GET("/books/:id", controllers.FindBook)
-    // r.POST("/books", controllers.CreateBook)
-    // r.PATCH("/books/:id", controllers.UpdateBook)
-    // r.DELETE("/books/:id", controllers.DeleteBook)
+    apiGroup.PATCH("/favorites/:filename", controllers.FavoriteNote)
+    apiGroup.GET("/note/:filename", controllers.GetNote)
+    apiGroup.PUT("/note/:filename", controllers.UpdateNote)
+    apiGroup.DELETE("/note/:filename", controllers.DeleteNote)
   }
 
   r.Run("0.0.0.0:8080")
 }
 
+
+func CORSMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+
+        c.Header("Access-Control-Allow-Origin", "*")
+        c.Header("Access-Control-Allow-Credentials", "true")
+        c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+        c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+        if c.Request.Method == "OPTIONS" {
+            c.AbortWithStatus(204)
+            return
+        }
+
+        c.Next()
+    }
+}

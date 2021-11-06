@@ -1,5 +1,7 @@
 *.db
 *.sqlite*
+media
+notes
 
 # reated by https://www.toptal.com/developers/gitignore/api/vim,go,tags
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim,go,tags
