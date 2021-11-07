@@ -6,9 +6,9 @@ services:
     image: easilok/mark-notes-server
     container_name: mark-notes-server
     environment:
-      - MONGODB_URI=''
+      - EXAMPLE=''
     volumes:
-      - "./media:/media"
+      - "./notes:/notes"
     ports:
       - 8080:8080
     # restart: always

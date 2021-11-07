@@ -10,7 +10,7 @@ type User struct {
 type NoteInformation struct {
   ID        uint    `json:"id" gorm:"primary_key"`
   Filename  string  `json:"filename" gorm:"uniqueIndex"`
-  Title     string  `json:"tile"`
+  Title     string  `json:"title"`
   Favorite  bool    `json:"favorite"`
   UserID    uint     
   User      User
@@ -19,13 +19,13 @@ type NoteInformation struct {
 
 type Category struct {
   ID        uint    `json:"id" gorm:"primary_key"`
-  Title     string  `json:"tile"`
+  Title     string  `json:"title"`
 }
 
 type NoteInformationAPI struct {
   // ID        uint    `json:"id"`
   Filename  string  `json:"filename"`
-  Title     string  `json:"tile"`
+  Title     string  `json:"title"`
   Favorite  bool    `json:"favorite"`
 }
 
