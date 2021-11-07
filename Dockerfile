@@ -8,7 +8,7 @@ RUN go get -d -v ./...
 RUN go install -v ./...
 
 RUN mkdir "/notes"
-RUN ln -sfr /media media
+RUN ln -sfr /notes notes
 VOLUME /notes
 
 EXPOSE 8080
