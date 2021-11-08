@@ -1,10 +1,12 @@
 package database
 
 import (
+  "os"
     "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
   "github.com/easilok/mark-notes-server/models"
 )
+
 
 func FirstSetup (db *gorm.DB) {
   var user models.User
@@ -17,7 +19,8 @@ func FirstSetup (db *gorm.DB) {
 }
 
 func ConnectDatabase() *gorm.DB {
-  database, err := gorm.Open("sqlite3", "notes.db")
+  dbPath := "notes" + string(os.PathSeparator) + "notes.db"
+  database, err := gorm.Open("sqlite3", dbPath)
 
   if err != nil {
     panic("Failed to connect to database!")

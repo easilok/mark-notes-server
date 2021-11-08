@@ -194,3 +194,13 @@ func (h * BaseHandler) DeleteNote(c *gin.Context) {
 
   c.JSON(http.StatusOK, gin.H{"data": true, "message": message})
 }
+
+// GET /note/scan
+// Scan not indexed notes on local drive
+func (h * BaseHandler) ScanNotes(c *gin.Context) {
+  var response = map[string]interface{}{ 
+    "notes": make([]models.NoteInformationAPI, 0),
+  }
+
+  c.JSON(http.StatusOK, gin.H{ "data": response })
+}

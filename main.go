@@ -22,6 +22,7 @@ func main() {
     apiGroup.GET("/note/:filename", controllers.GetNote)
     apiGroup.PUT("/note/:filename", controllers.UpdateNote)
     apiGroup.DELETE("/note/:filename", controllers.DeleteNote)
+    apiGroup.GET("/note/scan", controllers.ScanNotes)
   }
 
   r.Run("0.0.0.0:8080")
