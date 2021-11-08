@@ -3,6 +3,7 @@ package controllers
 import (
   "net/http"
   "os"
+  str "strings"
   // "io/ioutil"
 
   "github.com/gin-gonic/gin"
@@ -162,6 +163,10 @@ func (h *BaseHandler) UpdateNote(c *gin.Context) {
     c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
   }
   defer f.Close()
+  err = f.Chmod(0777)
+  if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+  }
   _, err = f.WriteString(input.Content)
   if err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -176,7 +181,7 @@ func (h * BaseHandler) DeleteNote(c *gin.Context) {
   // Find filename on local machine
   filename := c.Param("filename")
   filename = helpers.String(filename).GetFilename(".md")
-  filepath := "notes" + string(os.PathSeparator) + filename + ".md"
+  // filepath := "notes" + string(os.PathSeparator) + filename + ".md"
 
   // if filename exists on storage -> delete it -> remove from note information
   var deletingNote models.NoteInformation
@@ -188,7 +193,7 @@ func (h * BaseHandler) DeleteNote(c *gin.Context) {
   h.db.Delete(&deletingNote)
 
   message := ""
-  if err := os.Remove(filepath); err != nil {
+  if err := helpers.TrashFile("notes", filename + ".md"); err != nil {
     message = "Error deleting file: " + err.Error()
   }
 
@@ -198,9 +203,58 @@ func (h * BaseHandler) DeleteNote(c *gin.Context) {
 // GET /note/scan
 // Scan not indexed notes on local drive
 func (h * BaseHandler) ScanNotes(c *gin.Context) {
-  var response = map[string]interface{}{ 
-    "notes": make([]models.NoteInformationAPI, 0),
+  var registeredNotes []string;
+  // Fetch all filenames in the database catalog
+  h.db.Model(&models.NoteInformation{}).Pluck("filename", &registeredNotes)
+
+  // Fecth all filenames in the notes folder
+  f, err := os.Open("notes")
+  if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    return
+  }
+  localFiles, err := f.ReadDir(0)
+  if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    return
   }
 
+  var missingNotes []models.NoteInformationAPI
+  // Check each file in the system if is already cataloged
+  for _, v := range localFiles {
+    filepath := v.Name()
+    if !v.IsDir() && str.HasSuffix(filepath, ".md") {
+      filename := helpers.String(filepath).GetFilename(".md")
+      fileInCatalog := false
+      for _, existingNote := range registeredNotes {
+        if (filename == existingNote) {
+          fileInCatalog = true
+          break
+        }
+      }
+      if !fileInCatalog {
+        // If file is not yet cataloged, catalog it and sent back to client
+        fullPath := "notes" + string(os.PathSeparator) + filepath
+        data, err := os.ReadFile(fullPath)
+        if err != nil {
+          // if file can't be read, ignore it and try the next one
+          continue
+        }
+        noteContent := string(data)
+        var missingNote models.NoteInformation
+        missingNote.Favorite = false
+        missingNote.Filename = filename
+        missingNote.Title = helpers.String(noteContent).TitleFromMarkdown()
+        missingNote.UserID = 1
+        h.db.Create(&missingNote)
+        missingNotes = append(missingNotes, missingNote.ExportedFields())
+      }
+    }
+  }
+
+  // Build a response object, to allow more data
+  var response = map[string]interface{}{ 
+    "notes": missingNotes,
+  }
   c.JSON(http.StatusOK, gin.H{ "data": response })
 }

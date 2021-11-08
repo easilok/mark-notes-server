@@ -1,6 +1,9 @@
 package helpers
 
-import str "strings"
+import (
+  "os"
+  str "strings"
+)
 
 type String string
 
@@ -21,4 +24,19 @@ func (text String) GetFilename (ext string) string {
     return baseText[0:len(baseText) - len(ext)]
   }
   return baseText
+}
+
+func TrashFile(rootFolder string, filepath string) error{
+
+  fullPath := rootFolder + string(os.PathSeparator) + filepath
+  trashFolderPath := rootFolder + string(os.PathSeparator) + "trash"
+  trashedFilePath := trashFolderPath + string(os.PathSeparator) + filepath
+
+  if _, err := os.Open(trashFolderPath); err != nil {
+    os.Mkdir(trashFolderPath, 0755)
+  }
+
+  err := os.Rename(fullPath, trashedFilePath)
+
+  return err
 }
