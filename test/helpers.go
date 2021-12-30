@@ -1,13 +1,15 @@
-package database
+package test
 
 import (
+	"os"
+
 	"github.com/easilok/mark-notes-server/models"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"os"
 )
 
-func FirstSetup(db *gorm.DB) {
+const TEST_DATABASE_PATH string = "notes_test.db"
+
+func CreateExampleUser(db *gorm.DB) {
 	var user models.User
 	if err := db.First(&user).Error; err != nil {
 		user.Email = "test@test.com"
@@ -17,8 +19,8 @@ func FirstSetup(db *gorm.DB) {
 	}
 }
 
-func ConnectDatabase() *gorm.DB {
-	dbPath := "notes" + string(os.PathSeparator) + "notes.db"
+func ConnectTestDatabase() *gorm.DB {
+	dbPath := TEST_DATABASE_PATH
 	database, err := gorm.Open("sqlite3", dbPath)
 
 	if err != nil {
@@ -29,7 +31,9 @@ func ConnectDatabase() *gorm.DB {
 	database.AutoMigrate(&models.Category{})
 	database.AutoMigrate(&models.User{})
 
-	FirstSetup(database)
-
 	return database
+}
+
+func RemoveTestDatabase() {
+	os.Remove(TEST_DATABASE_PATH)
 }
