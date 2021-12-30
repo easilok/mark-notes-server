@@ -14,8 +14,6 @@ pipeline {
         echo 'Testing golang application...'
       }
     }
-  }
-  stages {
     stage('Build image') {
       steps {
         echo 'Building docker image..'
