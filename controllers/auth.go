@@ -44,6 +44,7 @@ func (h *BaseHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
+	// fmt.Printf("Received user: %v \nFetched user: %v\n", u, logginUser)
 	//compare the user from the request, with the one we defined:
 	if passwordOk := models.CheckPasswordHash(u.Password, logginUser.Password); !passwordOk {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
@@ -181,9 +182,9 @@ func (h *BaseHandler) Register(c *gin.Context) {
 	newUser.Password = hashedPassword
 	h.db.Save(&newUser)
 
-  // Create folders
-  userIdStr := strconv.FormatUint(uint64(newUser.ID), 10)
-  helpers.CreateUserFolders("notes", userIdStr)
+	// Create folders
+	userIdStr := strconv.FormatUint(uint64(newUser.ID), 10)
+	helpers.CreateUserFolders("notes", userIdStr)
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created"})
 }

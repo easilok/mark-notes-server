@@ -10,8 +10,14 @@ pipeline {
     }
   stages {
     stage('Test application') {
+      agent {
+          label "ext_agent"
+      }
       steps {
-        echo 'Testing golang application...'
+        echo "Cloning repo"
+        checkout scm
+        echo "Testing golang application in ${WORKSPACE}..."
+        sh "go test ./..."
       }
     }
     stage('Build image') {
