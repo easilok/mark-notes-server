@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,6 +24,10 @@ type RegisterInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Name     string `json:"name"`
+}
+
+type UserPassword struct {
+	Password string `json:"password"`
 }
 
 //A sample use
@@ -187,4 +192,37 @@ func (h *BaseHandler) Register(c *gin.Context) {
 	helpers.CreateUserFolders("notes", userIdStr)
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created"})
+}
+
+// PATCH /password
+func (h *BaseHandler) Password(c *gin.Context) {
+	var u UserPassword
+  // Must be logged in
+	userId, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusForbidden, gin.H{})
+		return
+	}
+	if err := c.ShouldBindJSON(&u); err != nil {
+    log.Println(err)
+		c.JSON(http.StatusUnprocessableEntity, "Invalid user provided")
+		return
+	}
+
+	var existingUser models.User
+	if err := h.db.Where("id = ?", userId).First(&existingUser).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user"})
+		return
+	}
+
+	hashedPassword, err := models.HashPassword(u.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error hashing password"})
+		return
+	}
+
+	existingUser.Password = hashedPassword
+	h.db.Save(&existingUser)
+
+	c.JSON(http.StatusOK, gin.H{"message": "User password updated"})
 }

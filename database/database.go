@@ -9,10 +9,14 @@ import (
 
 func FirstSetup(db *gorm.DB) {
 	var user models.User
+	hashedPassword, err := models.HashPassword("123456")
+  if err != nil {
+    return;
+  }
 	if err := db.First(&user).Error; err != nil {
 		user.Email = "test@test.com"
 		user.Name = "test"
-		user.Password = "123456"
+		user.Password = hashedPassword
 		db.Save(&user)
 	}
 }

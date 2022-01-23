@@ -42,6 +42,7 @@ func main() {
 		authGroup.GET("/logout", TokenAuthMiddleware(), controllers.Logout)
 		authGroup.POST("/refresh", controllers.Refresh)
 		authGroup.POST("/register", TokenAuthMiddleware(), controllers.Register)
+    authGroup.PATCH("/password", TokenAuthMiddleware(), controllers.Password)
 	}
 
 	r.Run("0.0.0.0:8080")
